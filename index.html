@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Tablero de Homicidios en la Ciudad de México">
+  <title>Homicidios: Zonas de Riesgo</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" />
+  <link rel="stylesheet" href="estilos/estilos2.css" />
+  <!-- Geocoder (MapLibre GL Geocoder plugin) -->
+  <link rel="stylesheet" href="https://unpkg.com/@maplibre/maplibre-gl-geocoder@1.5.0/dist/maplibre-gl-geocoder.css" />
+  <script src="https://unpkg.com/@maplibre/maplibre-gl-geocoder@1.5.0/dist/maplibre-gl-geocoder.min.js"></script>
+
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" />
+  <link rel="icon" href="imagenes/logo_2025.png" type="image/png">
+
+</head>
+<body>
+
+  <header>
+    <img src="imagenes/logo_gob.svg" alt="Logo">
+    <div class="header-content">
+      <h1>Homicidios: Zonas de Riesgo</h1>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="main-content">
+  <aside class="sidebar">
+
+    <!-- Selector de estado -->
+    <div class="card" style="padding: 10px; margin-bottom: 10px;">
+      <label for="estado">Selecciona un estado:</label>
+      <select id="estado">
+        <option value="">-- Estado --</option>
+        <option value="calles02">Baja California Norte</option>
+        <option value="calles03">Baja California Sur</option>
+        <option value="calles09">Ciudad de México</option>
+        <option value="calles11">Guanajuato</option>
+        <option value="calles12">Guerrero</option>
+        <option value="calles15">Estado de México</option>
+        <option value="calles16">Michoacán</option>
+        <option value="calles20">Oaxaca</option>
+        <option value="calles25">Sinaloa</option>
+        <option value="calles27">Tabasco</option>
+        <option value="calles30">Veracruz</option>
+      </select>
+    </div>
+
+    <!-- Capas -->
+    <div class="card" id="card-capas" style="margin-bottom: 10px;">
+      <div class="leyendas-header">
+        <h4>Capas</h4>
+      </div>
+      <div class="leyendas-contenido" style="max-height: 300px; overflow-y: auto;">
+        <label class="switch">
+          <input type="checkbox" id="toggle-calles" checked onchange="toggleLayer('toggle-calles', this)">
+          <span class="slider round"></span>
+          <span class="layer-label">Calles</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="toggle-escuelas" checked onchange="toggleLayer('toggle-escuelas', this)">
+          <span class="slider round"></span>
+          <span class="layer-label">Escuelas</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="toggle-parques" checked onchange="toggleLayer('toggle-parques', this)">
+          <span class="slider round"></span>
+          <span class="layer-label">Parques</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="toggle-homicidios" checked onchange="toggleLayer('toggle-homicidios', this)">
+          <span class="slider round"></span>
+          <span class="layer-label">Homicidios</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="toggle-municipio" checked onchange="toggleLayer('toggle-municipio', this)">
+          <span class="slider round"></span>
+          <span class="layer-label">Municipio</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Simbología -->
+    <div class="leyenda card">
+      <div class="leyenda-header">
+        <h4>Simbología</h4>
+      </div>
+      <div class="leyenda-contenido">
+        <div class="leyenda-item">
+          <img src="imagenes/school1.png" alt="Escuela" /> <span>Escuelas</span>
+        </div>
+        <div class="leyenda-item">
+          <img src="imagenes/tree-fill.png" alt="Parques" /> <span>Parques</span>
+        </div>
+        <div class="leyenda-item">
+          <span class="color-circulo" style="background-color: #F9EFA5;"></span> <span>Homicidios registrados</span>
+        </div>
+        <div class="leyenda-item">
+          <span class="color-circulo" style="background-color: #F5011E;"></span> <span>Zona con actividad critica</span>
+        </div>
+        <div class="leyenda-item">
+          <span class="color-circulo" style="background-color: #F58F7A;"></span> <span>Zona con actividad elevada</span>
+        </div>
+        <div class="leyenda-item">
+          <span class="color-circulo" style="background-color: #77B2DB;"></span> <span>Zona con actividad baja </span>
+        </div>
+        <div class="leyenda-item">
+          <span class="color-circulo" style="background-color: #207BF5;"></span> <span>Zona con actividad minima</span>
+        </div>
+        <div class="leyenda-item">
+          <span class="color-circulo" style="background-color: #CCCCCC;"></span> <span>Zona sin actividad definida</span>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- Mapa -->
+  <div id="map"></div>
+</div>
+
+
+
+
+  <!-- <div id="layer-controls">
+    <label><input type="checkbox" id="toggle-calles" checked> Mostrar calles</label><br>
+    <label><input type="checkbox" id="toggle-parques" checked> Mostrar parques</label><br>
+    <label><input type="checkbox" id="toggle-homicidios" checked> Mostrar homicidios</label><br>
+    <label><input type="checkbox" id="toggle-escuelas" checked> Mostrar escuelas</label><br>
+  </div>-->
+
+
+  <!-- Librerías externas -->
+  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
+  <!-- Archivos propios -->
+  <script src="scripts/mapa_config.js"></script>
+  <script src="scripts/capas.js"></script>
+  <script src="scripts/eventos_selector.js"></script>
+  <script src="scripts/main.js"></script>
+</body>
+</html>
