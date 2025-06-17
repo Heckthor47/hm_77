@@ -93,7 +93,7 @@ function manejarCambioEstado() {
   const bboxEstado = turf.bbox(featureSeleccionado);
   map.fitBounds(bboxEstado, { padding: 20, duration: 1000 });
 
-  const rutaCalles = `https://incandescent-biscochitos-5bb3b9.netlify.app/${seleccion}.geojson`;
+  const rutaCalles = `https://fabulous-dodol-d03b96.netlify.app/${seleccion}.geojson`;
   map.addSource("calles", {
     type: "geojson",
     data: rutaCalles

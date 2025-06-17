@@ -13,7 +13,7 @@ let bboxNacional = null;
 map.on("load", () => {
 
   // Cargar Entidades.geojson
-  fetch("https://incandescent-biscochitos-5bb3b9.netlify.app/entidades.geojson")
+  fetch("https://fabulous-dodol-d03b96.netlify.app/entidades.geojson")
     .then(r => r.json())
     .then(data => {
       estadosGeoJson = data;
@@ -22,30 +22,41 @@ map.on("load", () => {
     .catch(err => console.error("Error al cargar Entidades.geojson:", err));
 
   // Cargar parques 
+  // 1. Agrega la fuente "parques"
   map.addSource("parques", {
     type: "geojson",
-    data: "https://incandescent-biscochitos-5bb3b9.netlify.app/parques.geojson"
+    data: "https://fabulous-dodol-d03b96.netlify.app/parques.geojson"
   });
 
+// 2. Carga la imagen personalizada y crea la capa "symbol"
+  map.loadImage('imagenes/tree-fill.png', (error, image) => {
+    if (error) {
+      console.error("Error al cargar la imagen tree-fill.png", error);
+      return;
+    }
 
-  // Añadir capa de parques (invisible al inicio)
-  map.addLayer({
-    id: "parques-layer",
-    type: "circle",
-    source: "parques",
-    paint: {
-      "circle-radius": 3,
-      "circle-color": "black",
-      "circle-opacity": 0.8,
-      "circle-stroke-color": "black",
-      "circle-stroke-width": 1
-    },
-    filter: ["==", "CVE_ENT", ""]
+    if (!map.hasImage('icono-parque')) {
+      map.addImage('icono-parque', image);
+    }
+
+  // 3. Agrega la capa con icono
+    map.addLayer({
+      id: 'parques-layer',
+      type: 'symbol',
+      source: 'parques',
+      layout: {
+        'icon-image': 'icono-parque',
+        'icon-size': 0.1
+      },
+      filter: ['==', 'CVE_ENT', '']
+    });
+    map.setLayoutProperty("parques-layer", "visibility", "none");
   });
+
 
   map.addSource("homicidios", {
     type: "geojson",
-    data: "data/homicidios.geojson"
+    data: "https://fabulous-dodol-d03b96.netlify.app/homicidios.geojson"
   });
 
 
@@ -66,23 +77,40 @@ map.on("load", () => {
 
 
 // Añadir capa de escuelas
+  // 1. Fuente GeoJSON
   map.addSource("escuelas", {
     type: "geojson",
-    data: "https://incandescent-biscochitos-5bb3b9.netlify.app/escuelas.geojson"
+    data: "https://fabulous-dodol-d03b96.netlify.app/escuelas.geojson"
   });
-  map.addLayer({
-    id: "escuelas-layer",
-    type: "circle",
-    source: "escuelas",
-    paint: {
-      "circle-radius": 3,
-      "circle-color": "red",
-      "circle-opacity": 0.8,
-      "circle-stroke-color": "black",
-      "circle-stroke-width": 1
-    },
-    filter: ["==", "CVE_ENT", ""]
+
+// 2. Cargar imagen personalizada y crear capa 'symbol'
+  map.loadImage('imagenes/school1.png', (error, image) => {
+    if (error) {
+      console.error("Error al cargar escuela.png", error);
+      return;
+    }
+
+    if (!map.hasImage('icono-escuela')) {
+      map.addImage('icono-escuela', image);
+    }
+
+  // 3. Agregar la capa
+    map.addLayer({
+      id: 'escuelas-layer',
+      type: 'symbol',
+      source: 'escuelas',
+      layout: {
+        'icon-image': 'icono-escuela',
+        'icon-size': 0.1,
+        'icon-allow-overlap': true
+      },
+      filter: ['==', 'CVE_ENT', '']
+    });
+
+  // 4. Ocultar la capa al inicio
+    map.setLayoutProperty('escuelas-layer', 'visibility', 'none');
   });
+
 
   //Poner el geocoder
   const geocoder = new MaplibreGeocoder({
@@ -111,36 +139,61 @@ map.on("load", () => {
 map.addControl(geocoder, "top-right");
 
 geocoder.on("result", (e) => {
-  const lngLat = e.result.center; // [lon, lat]
+  // 0) Recuperar coordenadas
+  const lngLat = e.result.center;     // [lon, lat]
+  const [lng, lat] = lngLat;
 
-  // Crear punto GeoJSON
+  // 1) Volar al punto
+  map.flyTo({
+    center: lngLat,
+    zoom: 14,
+    speed: 1.2,
+    curve: 1
+  });
+
+  // 2) Activar visibilidad de capas
+  const layersToShow = ["homicidios-layer", "parques-layer", "escuelas-layer"];
+  layersToShow.forEach(id => {
+    if (map.getLayer(id)) {
+      map.setLayoutProperty(id, "visibility", "visible");
+    }
+  });
+
+  // 3) Sincronizar los checkboxes de la UI
+  const toggles = ["toggle-homicidios", "toggle-parques", "toggle-escuelas"];
+  toggles.forEach(toggleId => {
+    const input = document.getElementById(toggleId);
+    if (input && !input.checked) {
+      input.checked = true;
+      toggleLayer(toggleId, input);
+    }
+  });
+
+  // 4) Determinar en qué estado cayó el punto
   const point = turf.point(lngLat);
-
-  // Buscar en qué estado cayó el punto
   const feature = estadosGeoJson.features.find(f =>
     turf.booleanPointInPolygon(point, f)
   );
 
   if (!feature) {
-    console.log("El punto seleccionado NO cayó en ningún estado");
-
-    // Limpiar capas si no está en un estado
+    console.log("El punto NO cayó en ningún estado");
     removerCapaCalles();
     removerCapaEstado();
-    map.setFilter("parques-layer", ["==", "CVE_ENT", ""]);
+    map.setFilter("parques-layer",    ["==", "CVE_ENT", ""]);
     map.setFilter("homicidios-layer", ["==", "CVE_ENT", ""]);
-    map.setFilter("escuelas-layer", ["==", "CVE_ENT", ""]);
+    map.setFilter("escuelas-layer",   ["==", "CVE_ENT", ""]);
     return;
   }
 
-  // Si sí cayó en un estado
+  // 5) Si cayó en un estado, cargar calles y filtrar las demás capas
   const codigoEntidad = feature.properties.CVE_ENT;
-  console.log("El punto cayó en el estado:", codigoEntidad);
+  console.log("Estado:", codigoEntidad);
 
-  // 1️Activar calles
+  // a) Calles https://.../calles${codigoEntidad}.geojson
   removerCapaCalles();
-  const rutaCalles = `https://incandescent-biscochitos-5bb3b9.netlify.app/calles${codigoEntidad}.geojson`;
+  const rutaCalles = `https://fabulous-dodol-d03b96.netlify.app/calles${codigoEntidad}.geojson`;
   map.addSource("calles", { type: "geojson", data: rutaCalles });
+  // insertar la capa antes de las demás
   map.addLayer({
     id: "calles-layer",
     type: "line",
@@ -149,15 +202,14 @@ geocoder.on("result", (e) => {
       "line-color": ["get", "colores"],
       "line-width": 1
     },
-    minzoom: 9 
+    minzoom: 12
   });
 
-  // 2️Activar parques
-  map.setFilter("parques-layer", ["==", "CVE_ENT", codigoEntidad]);
-  map.setFilter("homicidios-layer", ["==", "CVE_ENT", codigoEntidad]);
-  map.setFilter("escuelas-layer", ["==", "CVE_ENT", codigoEntidad]);
+  // b) Filtrar parques, homicidios y escuelas
+  ["parques-layer", "homicidios-layer", "escuelas-layer"]
+    .forEach(id => map.setFilter(id, ["==", "CVE_ENT", codigoEntidad]));
 
-  // (opcional) activar polígono del estado
+  // c) Dibujar polígono del estado
   removerCapaEstado();
   map.addSource("estado-source", { type: "geojson", data: feature });
   map.addLayer({
@@ -172,16 +224,8 @@ geocoder.on("result", (e) => {
     source: "estado-source",
     paint: { "line-color": "#005", "line-width": 2 }
   });
-
-  // (opcional) puedes hacer fitBounds al estado completo:
-  map.flyTo({
-  center: lngLat,
-  zoom: 13, // o 16 → ajusta según qué tan cerca quieras
-  speed: 1.5,
-  curve: 1
 });
 
-});
 
 geocoder.on("clear", () => {
   console.log("Búsqueda borrada → regresando a vista nacional");
