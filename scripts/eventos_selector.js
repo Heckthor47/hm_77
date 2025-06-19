@@ -58,7 +58,38 @@ function configurarSelectorEstado() {
     });
 
     const bboxEstado = turf.bbox(feature);
-    map.fitBounds(bboxEstado, { padding: 20, duration: 1000 });
+
+// Tamaño en grados del bounding box
+    const ancho = bboxEstado[2] - bboxEstado[0];
+    const alto = bboxEstado[3] - bboxEstado[1];
+
+    const esEstadoGrande = ancho > 2 || alto > 2; // puedes ajustar estos umbrales
+
+    if (esEstadoGrande) {
+      const center = [(bboxEstado[0] + bboxEstado[2]) / 2, (bboxEstado[1] + bboxEstado[3]) / 2];
+
+      map.flyTo({
+        center: center,
+        zoom: 9, // Ajusta aquí el nivel de zoom deseado
+        speed: 1,
+        curve: 1.2
+      });
+    } else {
+      const camera = map.cameraForBounds(bboxEstado, {
+        padding: 20
+      });
+      if (camera) {
+        map.flyTo({
+          center: camera.center,
+          zoom: camera.zoom,
+          speed: 1,
+          curve: 1.2,
+          essential: true
+        });
+      }
+    }
+
+
     
     map.setFilter("parques-layer", ["==", "CVE_ENT", codigoEntidad]);
     map.setFilter("homicidios-layer", ["==", "CVE_ENT", codigoEntidad]);
@@ -76,7 +107,14 @@ function configurarSelectorEstado() {
       },
       paint: {
         "line-color": ["get", "colores"],
-        "line-width": 1
+        "line-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          1, 0.2,
+          7, 0.4,
+          15, 1
+        ]
       }
     });
     const capasDatos = ["homicidios-layer", "parques-layer", "escuelas-layer"];
