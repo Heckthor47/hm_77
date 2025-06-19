@@ -90,7 +90,7 @@ map.on("load", () => {
     data: null,
     maxzoom: 22,
     buffer: 512,
-    tolerance: 0.2
+    tolerance: 0.1
   });
   map.addLayer({
     id: "calles-layer",

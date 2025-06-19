@@ -58,7 +58,7 @@ function configurarSelectorEstado() {
         const others = data.features.filter(f => f.properties.colores !== '#CDCDCD');
         const cdcdFeatures = data.features.filter(f => f.properties.colores === '#CDCDCD');
         // muestrear el 50% de características CDCDCD
-        const sampled = cdcdFeatures.filter(() => Math.random() < 0.5);
+        const sampled = cdcdFeatures.filter(() => Math.random() < 0.4);
         const finalFeatures = others.concat(sampled);
         // actualizar la fuente con el subconjunto de features
         map.getSource("calles").setData({ type: "FeatureCollection", features: finalFeatures });
