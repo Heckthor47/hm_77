@@ -51,6 +51,7 @@ function configurarSelectorEstado() {
 
     // 5) Recargar datos de calles con muestreo de color #CDCDCD
     const ruta = `https://fabulous-dodol-d03b96.netlify.app/${seleccion}.geojson`;
+    console.log(`Cargando calles desde: ${ruta}`);
     fetch(ruta)
       .then(response => response.json())
       .then(data => {
