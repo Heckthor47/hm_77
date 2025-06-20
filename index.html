@@ -6,25 +6,13 @@
   <meta name="description" content="Tablero de Homicidios en la Ciudad de México">
   <title>Homicidios: Zonas de Riesgo</title>
 
-  <!-- estilos maplibre-->
-
-
+  <!-- Estilos MapLibre y Geocoder -->
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" />
-  <script src="https://unpkg.com/@maplibre/maplibre-gl-geocoder@1.5.0/dist/maplibre-gl-geocoder.min.js"></script>
-
-  <!-- estilos personalizados-->
-  <link rel="stylesheet" href="estilos/estilos2.css" />
-  <link rel="icon" href="imagenes/logo_2025.png" type="image/png">
-
-
-  <!-- Geocoder y scripts -->
-
-  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" />
-  <script>
-    window.maplibregl = maplibregl; // Hacerlo global para el geocoder
-  </script>
   <link rel="stylesheet" href="https://unpkg.com/@maplibre/maplibre-gl-geocoder@1.5.0/dist/maplibre-gl-geocoder.css" />
 
+  <!-- Estilos personalizados -->
+  <link rel="stylesheet" href="estilos/estilos2.css" />
+  <link rel="icon" href="imagenes/logo_2025.png" type="image/png">
 </head>
 <body>
 
@@ -41,8 +29,14 @@
 
     <!-- Selector de estado -->
     <div class="card" style="padding: 10px; margin-bottom: 10px;">
-      <label for="estado">Selecciona un estado:</label>
-      <select id="estado">
+      <!-- CAMBIO 1: Se modifica la etiqueta para que sea genérica, ya que no apunta a un 'id' -->
+      <label>Selecciona un estado:</label>
+      
+      <!-- CAMBIO 2: Se reemplaza el <select> por el Web Component <custom-dropdown> -->
+      <!-- El ID se cambia a 'state-selector-wc' para que coincida con los scripts que lo manipulan -->
+      <custom-dropdown id="state-selector-wc">
+        <!-- Las opciones <option> se mantienen exactamente igual que antes. -->
+        <!-- El componente las leerá y se construirá a partir de ellas. -->
         <option value="">-- Estado --</option>
         <option value="calles02">Baja California Norte</option>
         <option value="calles03">Baja California Sur</option>
@@ -55,10 +49,10 @@
         <option value="calles25">Sinaloa</option>
         <option value="calles27">Tabasco</option>
         <option value="calles30">Veracruz</option>
-      </select>
+      </custom-dropdown>
     </div>
 
-    <!-- Capas -->
+    <!-- Capas (sin cambios) -->
     <div class="card" id="card-capas" style="margin-bottom: 10px;">
       <div class="leyendas-header">
         <h4>Capas</h4>
@@ -87,7 +81,7 @@
       </div>
     </div>
 
-    <!-- Simbología -->
+    <!-- Simbología (sin cambios) -->
     <div class="leyenda card">
       <div class="leyenda-header">
         <h4>Simbología</h4>
@@ -108,12 +102,6 @@
         <div class="leyenda-item">
           <span class="color-circulo" style="background-color: #F58F7A;"></span> <span>Zona con de riesgo medio</span>
         </div>
-      <!--   <div class="leyenda-item">
-          <span class="color-circulo" style="background-color: #77B2DB;"></span> <span>Zona con actividad baja </span>
-        </div>
-        <div class="leyenda-item">
-          <span class="color-circulo" style="background-color: #207BF5;"></span> <span>Zona con actividad minima</span>
-        </div>-->
         <div class="leyenda-item">
           <span class="color-circulo" style="background-color: #CDCDCD;"></span> <span>Zona sin actividad definida</span>
         </div>
@@ -126,22 +114,15 @@
   <div id="map"></div>
 </div>
 
-
-
-
-  <!-- <div id="layer-controls">
-    <label><input type="checkbox" id="toggle-calles" checked> Mostrar calles</label><br>
-    <label><input type="checkbox" id="toggle-parques" checked> Mostrar parques</label><br>
-    <label><input type="checkbox" id="toggle-homicidios" checked> Mostrar homicidios</label><br>
-    <label><input type="checkbox" id="toggle-escuelas" checked> Mostrar escuelas</label><br>
-  </div>-->
-
-
   <!-- Librerías externas -->
   <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
   <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+  <script src="https://unpkg.com/@maplibre/maplibre-gl-geocoder@1.5.0/dist/maplibre-gl-geocoder.min.js"></script>
 
   <!-- Archivos propios -->
+  <!-- CAMBIO 3: Se añade el script del Web Component ANTES que los demás scripts que lo usan -->
+  <script src="componentes/custom-dropdown.js"></script>
+  
   <script src="scripts/mapa_config.js"></script>
   <script src="scripts/capas.js"></script>
   <script src="scripts/eventos_selector.js"></script>

@@ -1,7 +1,15 @@
-// Punto de entrada
+// Punto de entrada: se ejecuta cuando el HTML está completamente cargado.
 document.addEventListener("DOMContentLoaded", () => {
-  configurarSelectorEstado();
+  // --- CAMBIO: INICIO ---
+  // La llamada a configurarSelectorEstado() se elimina de este archivo.
+  // Ahora se invoca desde mapa_config.js para asegurar que el mapa se haya cargado
+  // completamente antes de intentar configurar los eventos del selector.
+  // --- CAMBIO: FIN ---
 });
+
+// --- SIN CAMBIOS ---
+// La lógica para los toggles de las capas permanece igual.
+
 // Mostrar/ocultar calles
 document.getElementById("toggle-calles").addEventListener("change", (e) => {
   const visibility = e.target.checked ? "visible" : "none";
