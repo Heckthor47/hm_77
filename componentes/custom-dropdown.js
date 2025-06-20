@@ -7,22 +7,24 @@ dropdownTemplate.innerHTML = `
       --dropdown-color: #611232;
       --dropdown-timing: 0.3s;
       position: relative;
-      display: block; /* Cambiado a block para un layout más predecible */
+      display: block;
       width: 100%;
       font-size: 14px;
       font-family: "Noto Sans", sans-serif;
     }
 
-    /* 1. El "rostro" del componente: lo que se ve cuando está cerrado */
+    /* 1. El "rostro" del componente */
     #selected-display {
       display: flex;
       align-items: center;
       height: 2.5em;
       padding-left: 1em;
-      padding-right: 3em; /* Espacio para la flecha */
+      padding-right: 3em;
       border: 1px solid #ddd;
-      border-radius: 8px;
-      background-color: #f9f9f9;
+      border-radius: 1.25em;
+      /* CAMBIO 1: Se establece el color de fondo y de texto para el estado cerrado. */
+      background-color: var(--dropdown-color);
+      color: #fff;
       cursor: pointer;
       transition: var(--dropdown-timing) all ease-in-out;
       white-space: nowrap;
@@ -31,26 +33,39 @@ dropdownTemplate.innerHTML = `
     }
     :host(.expanded) #selected-display {
       border-color: var(--dropdown-color);
+      border-radius: 8px 8px 0 0;
+      /* CAMBIO 2: Se establece el color de fondo y de texto para el estado abierto. */
+      background-color: #fff;
+      color: var(--dropdown-color);
     }
 
     /* 2. El contenedor de las opciones, oculto por defecto */
     #options-container {
-      display: none;
       position: absolute;
       top: 100%;
       left: 0;
       right: 0;
-      max-height: 12.5em; /* 5 items de 2.5em */
-      overflow-y: auto;
       background: #fff;
       border: 1px solid var(--dropdown-color);
       border-top: none;
       border-radius: 0 0 8px 8px;
       box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
       z-index: 10;
+      
+      max-height: 0;
+      opacity: 0;
+      visibility: hidden;
+      overflow: hidden;
+      transition: max-height var(--dropdown-timing) ease-in-out,
+                  opacity var(--dropdown-timing) ease-in-out,
+                  visibility 0s linear var(--dropdown-timing);
     }
     :host(.expanded) #options-container {
-      display: block;
+      max-height: 12.5em;
+      opacity: 1;
+      visibility: visible;
+      overflow-y: auto;
+      transition-delay: 0s;
     }
 
     /* 3. Estilo de cada opción en la lista */
@@ -67,30 +82,32 @@ dropdownTemplate.innerHTML = `
       background-color: #f5f5f5;
     }
     ::slotted(input) {
-      display: none; /* Los radio buttons son invisibles, controlamos todo con el label */
+      display: none;
     }
     ::slotted(input:checked + label) {
       font-weight: 600;
       color: var(--dropdown-color);
     }
 
-    /* 4. La flecha (sin cambios importantes) */
+    /* 4. La flecha */
     .arrow {
       position: absolute;
       right: 1em;
       top: 50%;
       transform: translateY(-50%) rotate(0deg);
-      border: 0.3em solid var(--dropdown-color);
-      border-color: var(--dropdown-color) transparent transparent transparent;
+      /* CAMBIO 3: El color de la flecha ahora debe ser blanco cuando está cerrado. */
+      border: 0.3em solid #fff;
+      border-color: #fff transparent transparent transparent;
       transition: 0.4s all ease-in-out;
-      pointer-events: none; /* Para que no intercepte clics */
+      pointer-events: none;
     }
     :host(.expanded) .arrow {
       transform: translateY(-50%) rotate(-180deg);
+      /* CAMBIO 4: El color de la flecha vuelve al color principal cuando está abierto. */
+      border-color: var(--dropdown-color) transparent transparent transparent;
     }
   </style>
   
-  <!-- ESTRUCTURA REFACTORIZADA -->
   <div id="selected-display"></div>
   <div class="arrow"></div>
   <div id="options-container">
@@ -104,10 +121,8 @@ class CustomDropdown extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(dropdownTemplate.content.cloneNode(true));
 
-    // Referencias a los elementos internos
     this.displayElement = this.shadowRoot.getElementById('selected-display');
     
-    // Enlazar métodos
     this._handleClick = this._handleClick.bind(this);
     this._handleOutsideClick = this._handleOutsideClick.bind(this);
     this._handleSelectionChange = this._handleSelectionChange.bind(this);
@@ -126,20 +141,17 @@ class CustomDropdown extends HTMLElement {
     this.removeEventListener('change', this._handleSelectionChange);
   }
 
-  // Abre y cierra el menú
   _handleClick(e) {
     e.stopPropagation();
     this.classList.toggle('expanded');
   }
 
-  // Cierra el menú si se hace clic fuera
   _handleOutsideClick() {
     if (this.classList.contains('expanded')) {
       this.classList.remove('expanded');
     }
   }
 
-  // Convierte las <option> en <input> y <label>
   _upgradeFromOptions() {
     const options = Array.from(this.querySelectorAll('option'));
     if (options.length === 0) return;
@@ -171,25 +183,20 @@ class CustomDropdown extends HTMLElement {
     this.innerHTML = '';
     this.append(...newElements);
     
-    // Establece el texto inicial
     this.displayElement.textContent = initialLabel;
   }
 
-  // Se ejecuta cuando se elige una opción
   _handleSelectionChange(e) {
     if (e.target.type === 'radio' && e.target.checked) {
       const selectedValue = e.target.value;
       const selectedLabel = this.querySelector(`label[for=${e.target.id}]`).textContent;
 
-      // 1. Actualiza el texto del display
       this.displayElement.textContent = selectedLabel;
 
-      // 2. Dispara el evento para que el mapa reaccione
       this.dispatchEvent(new CustomEvent('selection-change', {
         detail: { value: selectedValue, label: selectedLabel }
       }));
 
-      // 3. Cierra el menú
       this.classList.remove('expanded');
     }
   }

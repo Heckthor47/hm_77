@@ -148,7 +148,7 @@ header h1 {
 }
 
 .switch input:checked + .slider {
-  background-color: #f3f3f3;
+  background-color: #611232;
 }
 
 .switch input:checked + .slider::before {
