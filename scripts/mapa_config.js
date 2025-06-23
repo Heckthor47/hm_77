@@ -3,8 +3,8 @@
 const map = new maplibregl.Map({
   container: "map",
   style: "https://www.datosgeoespaciales.atdt.gob.mx/api/style_white.json",
-  center: [-99.1332, 19.4326],
-  zoom: 5
+  center: [-102.9332, 23.4326],
+  zoom: 4.5
 });
 
 let estadosGeoJson = null;
